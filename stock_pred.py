@@ -1,27 +1,21 @@
 from keras.models import Sequential
-from keras.layers import Dense, LSTM, Dropout, Flatten, MaxPooling2D, Activation
+from keras.layers import Dense, LSTM, Dropout
 import pandas as pd
 import numpy as np
 import os
 from matplotlib import pyplot as plt
 from sklearn import preprocessing
 
-def normalize(matrix):
-    matrix[:,:-1] =  (matrix[:,:-1]-np.min(matrix[:,:-1]))/(np.max(matrix[:,:-1]) - np.min(matrix[:,:-1]))
-    matrix[:,-1:] = (matrix[:,-1:]-np.min(matrix[:,-1:]))/(np.max(matrix[:,-1:]) - np.min(matrix[:,-1:]))
-    return matrix
 
-
-def baseline_model():
+def __baseline_model():
     model = Sequential()
-    model.add(LSTM(units=200))
+    model.add(LSTM(units=100))
     model.add(Dropout(0.2))
     model.add(Dense(32))
     model.add(Dense(8))
     model.add(Dense(1, activation='linear'))
     model.compile(loss='mse', optimizer='adam', metrics=['mape'])
     return model
-
 
 
 ######################################################################
@@ -50,12 +44,12 @@ def createModel(dataDir, savefile, epochs, batchsize):
 
         x_test, y_test = x_train[train_size:, :], y_train[train_size:]
         x_train, y_train = x_train[:train_size, :], y_train[:train_size]
-
+        test = np.array([1,2,3,4,5])
         sets.pop(0)
     else:
         return
 
-    for i in range(100):
+    for i in range(200):
        try:
             # Initialize Data
             data = pd.read_csv(dir +'\\'+ sets[i])
@@ -69,6 +63,7 @@ def createModel(dataDir, savefile, epochs, batchsize):
             # Parse Data
             x_new_train = []
             y_new_train = []
+
             for i in range(30, x.shape[0] - 30):
                 x_new_train.append(x[i - 30:i, :])
                 y_new_train.append((np.average(x[i + 20:i + 30, 3]) - x[i - 1, 3] * 10))
@@ -88,8 +83,8 @@ def createModel(dataDir, savefile, epochs, batchsize):
            continue
 
     # Test and save model
-    model = baseline_model()
-    model.fit(x_train, y_train, epochs=epochs,batch_size=batchsize,verbose=2)
+    model = __baseline_model()
+    model.fit(x_train, y_train, validation_data=(x_test[:100,:], y_test[:100]), epochs=epochs,batch_size=batchsize,verbose=2)
     scores = model.evaluate(x_test, y_test, verbose=2)
     print("LSTM Error: %.2f%%" % (scores[1]))
 
@@ -104,8 +99,9 @@ def createModel(dataDir, savefile, epochs, batchsize):
     return
 
 
+# Testing
 dir = 'C:\\Users\\Chand\\Desktop\\IndependentProjects\\Learning\\Machine_Learning\\archive\\Stocks'
-savefile = 'realtest.h5'
-epochs = 10
-batch = 600
+savefile = '200lstm100.h5'
+epochs = 5
+batch = 300
 createModel(dir, savefile,epochs,batch)

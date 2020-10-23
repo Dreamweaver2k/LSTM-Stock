@@ -1,4 +1,4 @@
-import os, sys, argparse
+import sys
 import Learning.Machine_Learning.stock_pred as get_model
 
 
